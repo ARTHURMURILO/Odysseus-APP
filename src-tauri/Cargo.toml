@@ -1,6 +1,6 @@
 [package]
 name = "odysseus-shell"
-version = "0.2.6"
+version = "0.2.7"
 description = "Native desktop shell for a self-hosted Odysseus instance"
 edition = "2021"
 
