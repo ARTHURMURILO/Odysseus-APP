@@ -2,6 +2,8 @@
 
 (PERSONAL AI SLOP! i use this on my Laptop and works good but its slop.. i guess and also linux exclusive as i don't care for Windows much)
 
+(also while the shell itself is MIT it acts a mere front facing interface to the GPL/other licensed back ends behind Odysseus)
+
 A lightweight **native desktop shell** for any [Odysseus](https://github.com/odysseus-dev/odysseus) self-hosted AI workspace instance. Built with [Tauri 2](https://v2.tauri.app) + Rust.
 
 Point it at your own server — home lab, VPS, NAS — ideally reachable over [Tailscale](https://tailscale.com) or LAN, and it becomes a real desktop app: own window, theme-matched chrome, tray support, per-instance logins.
