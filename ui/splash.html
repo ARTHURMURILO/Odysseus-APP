@@ -13,29 +13,93 @@
       }
       body {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 14px;
+        overflow: hidden;
         font-family: "Fira Code", monospace;
         color: #e06c75;
         -webkit-app-region: drag;
       }
+      #stars {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 13px;
+        text-align: center;
+        padding: 46px 76px 40px;
+        max-width: 90vw;
+        border-radius: 20px;
+        background: linear-gradient(
+          135deg,
+          rgba(53, 90, 102, 0.32),
+          rgba(40, 44, 52, 0.62)
+        );
+        border: 1px solid rgba(156, 222, 242, 0.22);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(156, 222, 242, 0.12);
+        animation: iris 0.45s cubic-bezier(0, 0.6, 0.4, 1) both;
+      }
+      @keyframes iris {
+        from {
+          clip-path: circle(0% at 50% 50%);
+          filter: blur(18px);
+          opacity: 0;
+        }
+        to {
+          clip-path: circle(150% at 50% 50%);
+          filter: blur(0);
+          opacity: 1;
+        }
+      }
+      .rise {
+        opacity: 0;
+        animation: rise 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
       .mark {
-        width: 44px;
-        height: 44px;
+        width: 84px;
+        height: 84px;
+        animation-delay: 0.05s;
       }
       .word {
-        font-size: 16px;
-        letter-spacing: 0.6px;
+        font-size: 34px;
+        letter-spacing: 1px;
         color: #e06c75;
+        user-select: none;
+        animation-delay: 0.08s;
+      }
+      .tagline {
+        font-size: 15px;
+        color: #9cdef2;
+        opacity: 0.75;
+        user-select: none;
+        animation-delay: 0.11s;
       }
       .bar-track {
-        width: 150px;
+        width: 170px;
         height: 3px;
         border-radius: 999px;
         background: #31353f;
         overflow: hidden;
+        animation-delay: 0.13s;
       }
       .bar-fill {
         width: 45%;
@@ -56,25 +120,132 @@
         }
       }
       .hint {
-        font-size: 10.5px;
+        font-size: 11px;
         color: #7f8792;
-        margin-top: 2px;
+        animation-delay: 0.15s;
+      }
+      @media (max-width: 560px) {
+        .card {
+          padding: 32px 36px 28px;
+        }
+        .mark {
+          width: 64px;
+          height: 64px;
+        }
+        .word {
+          font-size: 28px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .card,
+        .rise,
+        .bar-fill {
+          animation: none;
+          opacity: 1;
+        }
       }
     </style>
   </head>
   <body>
-    <svg class="mark" viewBox="0 0 32 32" fill="none">
-      <path d="M16 4L16 22L6 22Z" fill="#e06c75" />
-      <path d="M16 8L16 22L24 22Z" fill="#e06c75" opacity="0.6" />
-      <path
-        d="M4 24Q10 20 16 24Q22 28 28 24"
-        stroke="#e06c75"
-        stroke-width="2.5"
-        fill="none"
-        stroke-linecap="round"
-      />
-    </svg>
-    <div class="word">Odysseus</div>
-    <div class="bar-track"><div class="bar-fill"></div></div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div class="card">
+      <svg class="mark rise" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 4L16 22L6 22Z" fill="#e06c75" />
+        <path d="M16 8L16 22L24 22Z" fill="#e06c75" opacity="0.6" />
+        <path
+          d="M4 24Q10 20 16 24Q22 28 28 24"
+          stroke="#e06c75"
+          stroke-width="2.5"
+          fill="none"
+          stroke-linecap="round"
+        />
+      </svg>
+      <div class="word rise">Odysseus</div>
+      <div class="tagline rise">Yours for the voyage.</div>
+      <div class="bar-track rise" role="progressbar" aria-label="Loading">
+        <div class="bar-fill"></div>
+      </div>
+      <div class="hint rise" role="status">Setting sail&hellip;</div>
+    </div>
+    <script>
+      // Drifting constellation backdrop. Lightweight on purpose: ~150 nodes,
+      // one rAF loop. Static when reduced-motion is preferred or the tab is
+      // hidden (this screen auto-navigates away, so no work when unseen).
+      (function () {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          return;
+        var canvas = document.getElementById("stars");
+        var ctx = canvas.getContext("2d");
+        var COUNT = 150;
+        var LINK = 130;
+        var stars = [];
+
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+
+        function seed() {
+          stars = [];
+          for (var i = 0; i < COUNT; i++) {
+            stars.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              vx: (Math.random() - 0.5) * 0.22,
+              vy: (Math.random() - 0.5) * 0.22,
+              r: Math.random() * 1.4 + 0.5,
+              tw: Math.random() * Math.PI * 2,
+            });
+          }
+        }
+
+        function frame() {
+          if (document.hidden) {
+            requestAnimationFrame(frame);
+            return;
+          }
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          var i, j;
+          for (i = 0; i < stars.length; i++) {
+            var a = stars[i];
+            a.x += a.vx;
+            a.y += a.vy;
+            if (a.x < 0 || a.x > canvas.width) a.vx *= -1;
+            if (a.y < 0 || a.y > canvas.height) a.vy *= -1;
+            a.tw += 0.03;
+            var glow = 0.45 + 0.25 * Math.sin(a.tw);
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(156, 222, 242, " + glow.toFixed(3) + ")";
+            ctx.fill();
+            for (j = i + 1; j < stars.length; j++) {
+              var b = stars[j];
+              var dx = a.x - b.x;
+              var dy = a.y - b.y;
+              var d2 = dx * dx + dy * dy;
+              if (d2 < LINK * LINK) {
+                var alpha = 0.14 * (1 - Math.sqrt(d2) / LINK);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle =
+                  "rgba(156, 222, 242, " + alpha.toFixed(3) + ")";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              }
+            }
+          }
+          requestAnimationFrame(frame);
+        }
+
+        window.addEventListener("resize", function () {
+          resize();
+          seed();
+        });
+        resize();
+        seed();
+        frame();
+      })();
+    </script>
   </body>
 </html>

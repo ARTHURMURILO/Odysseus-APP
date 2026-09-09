@@ -1,4 +1,4 @@
-// odysseus-shell — injected titlebar + boot overlay + smart island + clock
+// odysseus-shell — injected titlebar + boot overlay + sidebar status widget
 (() => {
   if (document.getElementById("ody-titlebar")) return;
 
@@ -13,10 +13,11 @@
     `:root.ui-scale-125 body{height:calc(100dvh / 1.25)!important;}\n` +
     `body .toast{top:calc(var(--ody-bar-h) + 16px)!important;}\n` +
     `#ody-boot{position:fixed;inset:0;z-index:2147483647;background:#282c34;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:var(--font-family,"Fira Code",monospace);}\n` +
-    `#ody-boot .ody-boot-word{color:#e06c75;font-size:16px;letter-spacing:.6px;}\n` +
-    `#ody-boot .ody-boot-track{width:150px;height:3px;border-radius:999px;background:#31353f;overflow:hidden;}\n` +
+    `#ody-boot .ody-boot-word{color:#e06c75;font-size:20px;letter-spacing:.6px;}\n` +
+    `#ody-boot .ody-boot-track{width:170px;height:3px;border-radius:999px;background:#31353f;overflow:hidden;}\n` +
     `#ody-boot .ody-boot-fill{width:45%;height:100%;background:#e06c75;border-radius:inherit;animation:ody-boot-slide 1.1s ease-in-out infinite;}\n` +
     `@keyframes ody-boot-slide{0%{transform:translateX(-60%)}50%{transform:translateX(120%)}100%{transform:translateX(220%)}}\n` +
+    `@media (prefers-reduced-motion:reduce){#ody-boot .ody-boot-fill{animation:none;}}\n` +
     `#sidebar-brand-btn{display:none!important;}\n` +
     `#ody-status{align-self:stretch;margin:10px 10px 8px;padding:10px 12px 9px;display:flex;flex-direction:column;gap:7px;border:1px solid var(--border,#3a3f4b);border-radius:10px;background:var(--panel,#31353f);color:var(--fg,#abb2bf);font-family:var(--font-family,"Fira Code",monospace);cursor:pointer;user-select:none;-webkit-user-select:none;min-width:0;box-sizing:border-box;}\n` +
     `#ody-status:hover{border-color:var(--color-muted,var(--fg,#abb2bf));}\n` +
@@ -82,6 +83,7 @@
     b.id = id;
     b.className = cls;
     b.title = title;
+    b.setAttribute("aria-label", title);
     b.appendChild(svgIcon(children));
     return b;
   }
@@ -141,8 +143,8 @@
     const boot = document.createElement("div");
     boot.id = "ody-boot";
     const bootSail = SAIL.cloneNode(true);
-    bootSail.setAttribute("width", "44");
-    bootSail.setAttribute("height", "44");
+    bootSail.setAttribute("width", "64");
+    bootSail.setAttribute("height", "64");
     const bootWord = document.createElement("div");
     bootWord.className = "ody-boot-word";
     bootWord.textContent = "Odysseus";
@@ -166,7 +168,7 @@
   // --- Shell status widget (clock + smart island, unified) ------------------
   // One compact card pinned to the top of the sidebar: a persistent clock row
   // (time + date) above a hairline, then a mode-dependent status row
-  // (system / clock / model / health) with a micro label.
+  // (system / model / health) with a micro label. The clock/date header is always shown.
   function buildIsland() {
     // Drop legacy split widgets from older shell versions, if present.
     const legacyClock = document.getElementById("ody-clock");
@@ -204,7 +206,10 @@
     sub.append(dot, txt, tag);
 
     widget.append(top, div, sub);
-    widget.addEventListener("click", () => {
+    widget.setAttribute("tabindex", "0");
+    widget.setAttribute("role", "button");
+    widget.setAttribute("aria-label", "Odysseus Shell — open settings");
+    function openSettings() {
       try {
         window.__TAURI_INTERNALS__.invoke("plugin:event|emit_to", {
           target: { kind: "Any" },
@@ -213,6 +218,13 @@
         });
       } catch {
         /* shell unavailable */
+      }
+    }
+    widget.addEventListener("click", openSettings);
+    widget.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        openSettings();
       }
     });
     const anchor = sb.querySelector(".sidebar-inner");
@@ -250,9 +262,6 @@
             lastStats.cpuPct.toFixed(1) +
             "%"
           : "\u2026";
-      } else if (mode === "clock") {
-        tag.textContent = "local";
-        txt.textContent = new Date().toTimeString().slice(0, 8);
       } else if (mode === "model") {
         tag.textContent = "model";
         dot.style.display = "none";
@@ -304,6 +313,7 @@
       const pl = e.payload || e;
       cfgArrived = true;
       mode = (pl && pl.mode) || "system";
+      if (["off", "system", "model", "health"].indexOf(mode) === -1) mode = "system";
       applyMode();
     });
 
@@ -326,9 +336,6 @@
     render();
     askConfig();
     setInterval(tickClock, 10000);
-    setInterval(() => {
-      if (mode === "clock") render();
-    }, 1000);
     setInterval(() => {
       if (mode === "model") render();
     }, 3000);

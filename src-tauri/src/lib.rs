@@ -29,16 +29,16 @@ struct AppConfig {
     /// Opt-in: hide to tray on window close instead of exiting.
     #[serde(default)]
     minimize_to_tray: bool,
-    /// Smart-island widget mode: off | system | clock | model | health.
+    /// Smart-island widget mode: off | system | model | health.
     #[serde(default)]
     island_mode: String,
 }
 
 fn island_mode_of(cfg: &AppConfig) -> String {
-    if cfg.island_mode.is_empty() {
-        "system".to_string()
-    } else {
-        cfg.island_mode.clone()
+    match cfg.island_mode.as_str() {
+        "off" | "system" | "model" | "health" => cfg.island_mode.clone(),
+        // Unknown or retired modes (e.g. legacy "clock") fall back.
+        _ => "system".to_string(),
     }
 }
 
@@ -325,8 +325,8 @@ fn open_settings(app: &tauri::AppHandle) {
     if let Err(e) =
         WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("settings.html".into()))
             .title("Odysseus · Settings")
-            .inner_size(520.0, 430.0)
-            .min_inner_size(430.0, 360.0)
+            .inner_size(600.0, 700.0)
+            .min_inner_size(520.0, 560.0)
             .resizable(false)
             .center()
             .background_color(Color(40, 44, 52, 255))
