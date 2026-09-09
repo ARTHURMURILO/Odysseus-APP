@@ -18,12 +18,17 @@
     `#ody-boot .ody-boot-fill{width:45%;height:100%;background:#e06c75;border-radius:inherit;animation:ody-boot-slide 1.1s ease-in-out infinite;}\n` +
     `@keyframes ody-boot-slide{0%{transform:translateX(-60%)}50%{transform:translateX(120%)}100%{transform:translateX(220%)}}\n` +
     `#sidebar-brand-btn{display:none!important;}\n` +
-    `#ody-clock{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 10px 0;padding:12px 16px;border:1px solid var(--border,#3a3f4b);border-radius:12px;background:var(--panel,#31353f);color:var(--fg,#abb2bf);font-family:var(--font-family,"Fira Code",monospace);font-size:14px;font-weight:600;line-height:1.2;align-self:stretch;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.4px;}\n` +
-    `#ody-island{display:flex;align-items:center;gap:8px;margin:8px;padding:8px 12px;border:1px solid var(--border,#3a3f4b);border-radius:10px;background:var(--panel,#31353f);color:var(--color-muted,var(--fg,#abb2bf));font-family:var(--font-family,"Fira Code",monospace);font-size:11.5px;line-height:1.4;cursor:pointer;user-select:none;-webkit-user-select:none;max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;align-self:center;}\n` +
-    `#ody-island:hover{border-color:var(--color-muted,var(--fg,#abb2bf));}\n` +
-    `#ody-island .ody-isl-dot{width:7px;height:7px;border-radius:50%;background:var(--green,#98c379);flex:0 0 auto;}\n` +
-    `#ody-island.warn .ody-isl-dot{background:var(--red,#e06c75);}\n` +
-    `#ody-island .ody-isl-txt{overflow:hidden;text-overflow:ellipsis;}\n` +
+    `#ody-status{align-self:stretch;margin:10px 10px 8px;padding:10px 12px 9px;display:flex;flex-direction:column;gap:7px;border:1px solid var(--border,#3a3f4b);border-radius:10px;background:var(--panel,#31353f);color:var(--fg,#abb2bf);font-family:var(--font-family,"Fira Code",monospace);cursor:pointer;user-select:none;-webkit-user-select:none;min-width:0;box-sizing:border-box;}\n` +
+    `#ody-status:hover{border-color:var(--color-muted,var(--fg,#abb2bf));}\n` +
+    `#ody-status .ody-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}\n` +
+    `#ody-status .ody-time{font-size:15px;font-weight:600;letter-spacing:.3px;line-height:1.1;font-variant-numeric:tabular-nums;}\n` +
+    `#ody-status .ody-date{font-size:11px;color:var(--color-muted,var(--fg,#abb2bf));opacity:.75;white-space:nowrap;}\n` +
+    `#ody-status .ody-div{height:1px;background:var(--border,#3a3f4b);opacity:.7;}\n` +
+    `#ody-status .ody-sub{display:flex;align-items:center;gap:7px;min-width:0;}\n` +
+    `#ody-status .ody-isl-dot{width:7px;height:7px;border-radius:50%;background:var(--green,#98c379);flex:0 0 auto;}\n` +
+    `#ody-status.warn .ody-isl-dot{background:var(--red,#e06c75);}\n` +
+    `#ody-status .ody-isl-txt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;color:var(--color-muted,var(--fg,#abb2bf));font-variant-numeric:tabular-nums;}\n` +
+    `#ody-status .ody-tag{flex:0 0 auto;font-size:9px;letter-spacing:1px;opacity:.55;text-transform:uppercase;}\n` +
     `#ody-titlebar{position:fixed;top:0;left:0;right:0;height:var(--ody-bar-h);display:flex;align-items:center;gap:8px;padding-right:2px;background:var(--bg,#282c34);border-bottom:1px solid var(--border,#3a3f4b);z-index:2147483646;user-select:none;-webkit-user-select:none;font-family:var(--font-family,"Fira Code",monospace);}\n` +
     `#ody-titlebar .ody-brand{display:flex;align-items:center;gap:7px;height:100%;padding:0 12px;color:var(--color-muted,var(--fg,#abb2bf));font-size:12px;letter-spacing:.4px;cursor:pointer;}\n` +
     `#ody-titlebar .ody-brand:hover{background:var(--panel,#31353f);color:var(--fg,#abb2bf);}\n` +
@@ -158,40 +163,48 @@
     setTimeout(dismissBoot, 10000);
   }
 
-  // --- Smart Island + Clock -----------------------------------------------
+  // --- Shell status widget (clock + smart island, unified) ------------------
+  // One compact card pinned to the top of the sidebar: a persistent clock row
+  // (time + date) above a hairline, then a mode-dependent status row
+  // (system / clock / model / health) with a micro label.
   function buildIsland() {
+    // Drop legacy split widgets from older shell versions, if present.
+    const legacyClock = document.getElementById("ody-clock");
+    if (legacyClock) legacyClock.remove();
+    const legacyIsle = document.getElementById("ody-island");
+    if (legacyIsle) legacyIsle.remove();
+
     const sb = document.querySelector(".sidebar");
     if (!sb) return;
+    if (document.getElementById("ody-status")) return;
 
-    if (!document.getElementById("ody-clock")) {
-      const clock = document.createElement("div");
-      clock.id = "ody-clock";
-      const clockTxt = document.createElement("span");
-      clockTxt.className = "ody-clock-txt";
-      clock.append(clockTxt);
-      const target = sb.querySelector(".sidebar-inner");
-      if (target) sb.insertBefore(clock, target);
-      else sb.prepend(clock);
-      const updClock = () => {
-        clockTxt.textContent = new Date().toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      };
-      updClock();
-      setInterval(updClock, 60000);
-    }
+    const widget = document.createElement("div");
+    widget.id = "ody-status";
+    widget.title = "Odysseus Shell — click for settings";
 
-    if (document.getElementById("ody-island")) return;
-    const isl = document.createElement("div");
-    isl.id = "ody-island";
-    isl.title = "Odysseus Shell — click for settings";
+    const top = document.createElement("div");
+    top.className = "ody-top";
+    const timeEl = document.createElement("span");
+    timeEl.className = "ody-time";
+    const dateEl = document.createElement("span");
+    dateEl.className = "ody-date";
+    top.append(timeEl, dateEl);
+
+    const div = document.createElement("div");
+    div.className = "ody-div";
+
+    const sub = document.createElement("div");
+    sub.className = "ody-sub";
     const dot = document.createElement("span");
     dot.className = "ody-isl-dot";
     const txt = document.createElement("span");
     txt.className = "ody-isl-txt";
-    isl.append(dot, txt);
-    isl.addEventListener("click", () => {
+    const tag = document.createElement("span");
+    tag.className = "ody-tag";
+    sub.append(dot, txt, tag);
+
+    widget.append(top, div, sub);
+    widget.addEventListener("click", () => {
       try {
         window.__TAURI_INTERNALS__.invoke("plugin:event|emit_to", {
           target: { kind: "Any" },
@@ -202,51 +215,68 @@
         /* shell unavailable */
       }
     });
-    const target2 = document
-      .querySelector(".sidebar")
-      ?.querySelector(".sidebar-inner");
-    const sb2 = document.querySelector(".sidebar");
-    if (sb2) {
-      if (target2) sb2.insertBefore(isl, target2);
-      else sb2.appendChild(isl);
-    }
+    const anchor = sb.querySelector(".sidebar-inner");
+    if (anchor) sb.insertBefore(widget, anchor);
+    else sb.prepend(widget);
 
     let mode = "system";
     let lastStats = null,
       lastHealth = null;
 
+    function tickClock() {
+      const now = new Date();
+      timeEl.textContent = now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      dateEl.textContent = now
+        .toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })
+        .replace(/,/g, "");
+    }
+
     function render() {
-      isl.classList.toggle("warn", false);
+      widget.classList.toggle("warn", false);
+      dot.style.display = "";
+      txt.removeAttribute("title");
       if (mode === "system") {
-        if (lastStats) {
-          txt.textContent =
-            lastStats.rssMb.toFixed(0) +
-            " · " +
+        tag.textContent = "local";
+        txt.textContent = lastStats
+          ? lastStats.rssMb.toFixed(0) +
+            " MB \u00B7 " +
             lastStats.cpuPct.toFixed(1) +
-            "%";
-        } else {
-          txt.textContent = "\u2026 MB";
-        }
+            "%"
+          : "\u2026";
       } else if (mode === "clock") {
+        tag.textContent = "local";
         txt.textContent = new Date().toTimeString().slice(0, 8);
       } else if (mode === "model") {
+        tag.textContent = "model";
+        dot.style.display = "none";
         const el = document.getElementById("model-picker-label");
-        txt.textContent = el ? el.textContent.trim() || "model" : "model";
+        const name = el ? el.textContent.trim() : "";
+        txt.textContent = name || "model";
+        txt.title = txt.textContent;
       } else if (mode === "health") {
+        tag.textContent = "server";
         if (!lastHealth) {
           txt.textContent = "\u2026";
         } else if (lastHealth.ok) {
           txt.textContent = lastHealth.ms + " ms";
         } else {
           txt.textContent = "offline";
-          isl.classList.add("warn");
+          widget.classList.add("warn");
         }
       } else {
         txt.textContent = "";
+        tag.textContent = "";
       }
     }
     function applyMode() {
-      isl.style.display = mode === "off" ? "none" : "flex";
+      widget.style.display = mode === "off" ? "none" : "flex";
       render();
     }
 
@@ -292,8 +322,10 @@
       }
       setTimeout(askConfig, 250);
     };
+    tickClock();
     render();
     askConfig();
+    setInterval(tickClock, 10000);
     setInterval(() => {
       if (mode === "clock") render();
     }, 1000);
