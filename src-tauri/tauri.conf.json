@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Odysseus Shell",
   "mainBinaryName": "odysseus-shell",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "identifier": "app.odysseus.desktop",
   "build": {
     "frontendDist": "../ui"
