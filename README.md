@@ -1,6 +1,6 @@
 # Odysseus Shell
 
-(PERSONAL AI SLOP! i use this on my Laptop and works good but its slop.. i guess)
+(PERSONAL AI SLOP! i use this on my Laptop and works good but its slop.. i guess and also linux exclusive as i don't care for Windows much)
 
 A lightweight **native desktop shell** for any [Odysseus](https://github.com/odysseus-dev/odysseus) self-hosted AI workspace instance. Built with [Tauri 2](https://v2.tauri.app) + Rust.
 
