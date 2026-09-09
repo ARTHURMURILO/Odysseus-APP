@@ -313,7 +313,8 @@
       const pl = e.payload || e;
       cfgArrived = true;
       mode = (pl && pl.mode) || "system";
-      if (["off", "system", "model", "health"].indexOf(mode) === -1) mode = "system";
+      if (["off", "system", "model", "health"].indexOf(mode) === -1)
+        mode = "system";
       applyMode();
     });
 

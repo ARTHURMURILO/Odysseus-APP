@@ -12,11 +12,11 @@ Point it at your own server — home lab, VPS, NAS — reachable over [Tailscale
 
 Go to the [Releases](https://github.com/ARTHURMURILO/Odysseus-APP/releases) page and download the package for your platform.
 
-| Platform          | File          |
+| Platform | File |
 | ----------------- | ------------- |
 | Fedora / RHEL / openSUSE | `*.rpm` |
-| Debian / Ubuntu / Mint   | `*.deb` |
-| Anything else     | `*.AppImage` (portable, just run it) |
+| Debian / Ubuntu / Mint | `*.deb` |
+| Anything else | `*.AppImage` (portable, just run it) |
 
 ## Requirements
 
