@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "odysseus-remote",
+  "description": "Least-privilege grants for REMOTE pages loaded in the main window. Only window management (drag/maximize/minimize/close) is exposed to remote origins — deliberately NOT core:default. https-only: self-hosted instances sit behind Tailscale/LAN HTTPS (*.ts.net gives valid certs).",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://*"]
+  },
+  "permissions": [
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:event:allow-emit",
+    "core:event:allow-emit-to",
+    "core:event:allow-listen"
+  ]
+}

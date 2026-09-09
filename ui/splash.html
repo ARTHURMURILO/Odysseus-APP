@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Odysseus</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #282c34;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-family: "Fira Code", monospace;
+        color: #e06c75;
+        -webkit-app-region: drag;
+      }
+      .mark {
+        width: 44px;
+        height: 44px;
+      }
+      .word {
+        font-size: 16px;
+        letter-spacing: 0.6px;
+        color: #e06c75;
+      }
+      .bar-track {
+        width: 150px;
+        height: 3px;
+        border-radius: 999px;
+        background: #31353f;
+        overflow: hidden;
+      }
+      .bar-fill {
+        width: 45%;
+        height: 100%;
+        background: #e06c75;
+        border-radius: inherit;
+        animation: slide 1.1s ease-in-out infinite;
+      }
+      @keyframes slide {
+        0% {
+          transform: translateX(-60%);
+        }
+        50% {
+          transform: translateX(120%);
+        }
+        100% {
+          transform: translateX(220%);
+        }
+      }
+      .hint {
+        font-size: 10.5px;
+        color: #7f8792;
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="mark" viewBox="0 0 32 32" fill="none">
+      <path d="M16 4L16 22L6 22Z" fill="#e06c75" />
+      <path d="M16 8L16 22L24 22Z" fill="#e06c75" opacity="0.6" />
+      <path
+        d="M4 24Q10 20 16 24Q22 28 28 24"
+        stroke="#e06c75"
+        stroke-width="2.5"
+        fill="none"
+        stroke-linecap="round"
+      />
+    </svg>
+    <div class="word">Odysseus</div>
+    <div class="bar-track"><div class="bar-fill"></div></div>
+  </body>
+</html>
